@@ -1,5 +1,73 @@
 import sys
 
+# ------- AST Node Classes ------
+class AstNode:
+    pass
+
+class LiteralNode(AstNode):
+    def __init__(self, char):
+        self.char = char
+        
+class ConcatNode(AstNode):
+    def __init__(self, left, right):
+        self.left = left
+        self.right = right
+        
+class UnionNode(AstNode):
+    def __init__(self, left, right):
+        self.left = left
+        self.right = right
+        
+class StarNode(AstNode):
+    def __init__(self, child):
+        self.child = child
+        
+class PlusNode(AstNode):
+    def __init__(self, child):
+        self.child = child
+        
+        
+        
+# ------ NFA Classes ------
+class NFA:
+    def __init__(self, states, alphabet, transitions, start_state, accept_states):
+        """
+        Initializes an NFA.
+        
+        Args:
+            states (set): A set of states in the NFA.
+            alphabet (set): A set of input symbols. (hard coded)
+            transitions (dict): An 2D array representing state transitions.
+            start_state (str): The start state of the NFA.
+            accept_states (set): A set of accept states.
+        """
+        self.states = states
+        self.alphabet = {"a", "b", "Z"}
+        self.transitions = transitions
+        self.start_state = start_state
+        self.accept_states = accept_states
+        
+    def get_next_states(self, current_state, input_symbol):
+        """
+        Returns the set of next states for a given current state and input symbol.
+        
+        Args:
+            current_state (str): The current state.
+            input_symbol (str): The input symbol.
+            
+        """
+        return self.transitions.get((current_state, input_symbol), set())
+        
+    def __str__(self):
+        return f"NFA(states={self.states}, alphabet={self.alphabet}, transitions={self.transitions}, start_state={self.start_state}, accept_states={self.accept_states})"
+    
+
+        
+        
+        
+
+# ------- Regex Validation and Parsing ---------
+
 def parseRegex(regex):
     print("We have entered parseRegex")
 
@@ -14,9 +82,14 @@ def parseRegex(regex):
                     r2 = regex[i+1:]
                     regex = r1 + r2
         i += 1
-
+     
     print(regex)
-    print("Finished Adding '.'\n")
+    print("Finished Adding '.'\n")  
+        
+    # ------ AST CONSTRUCTION GOES HERE ------
+    print("Next step: Construct AST from regex")
+
+
     return 1
 
 def validRegex(content):
