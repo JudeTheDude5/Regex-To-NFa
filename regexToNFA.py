@@ -68,10 +68,6 @@ def validRegex(content):
                 if content[i+1] == '+' or content[i+1] == '*' or content[i+1] == '|':
                     print("Error: Improper Ajacent operators")
                     sys.exit(1)
-            if content[i] == ')':
-                if content[i+1] == '+' or content[i+1] == '*':
-                    print("Error: Improper Ajacent operators")
-                    sys.exit(1)
 
     if stack:
             print("Error: Unmatched Parenthesis")

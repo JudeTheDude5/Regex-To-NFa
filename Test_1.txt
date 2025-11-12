@@ -1,1 +1,1 @@
-ab(a)+ab*|a*
+ab(aab*|a*
