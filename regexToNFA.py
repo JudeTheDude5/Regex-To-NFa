@@ -3,6 +3,8 @@ import sys
 def parseRegex(regex):
     print("We have entered parseRegex")
 
+
+    print("Adding concat symbols in prep for AST")
     i = 0
     while i < len(regex):
         if regex[i] == 'a' or regex[i] == 'b' or regex[i] == 'Z' or regex[i] == '*' or regex[i] == '+' or regex[i] == ')':
@@ -11,23 +13,78 @@ def parseRegex(regex):
                     r1 = regex[:i+1] + '.'
                     r2 = regex[i+1:]
                     regex = r1 + r2
-
-                    print(r1)
-                    print(r2)
-                    print("\n")
         i += 1
 
-    
-
-    print("\n")
     print(regex)
+    print("Finished Adding '.'\n")
     return 1
+
+def validRegex(content):
+    print("We have entered validity checker")
+    
+    # Valid Regex Check
+    if len(content) == 0:
+        print("Error: Empty file")
+        sys.exit(1)
+    stack = []
+    for i in range(len(content)):
+        #Checks Proper Symbol use
+        if content[i] != 'Z' and content[i] != 'a' and content[i] != 'b' and content[i] != '+' and content[i] != '*' and content[i] != '|' and content[i] != '(' and content[i] != ')':
+            print("Error: Erroneous Characters used, only valids are a,b,Z,+,*,|,(,)")
+            sys.exit(1)
+
+        # Checks that parenthesis are correct
+        if content[i] == '(':
+            stack.append('x')
+        elif content[i] == ')':
+            if stack:
+                stack.pop()
+            else:
+                print("Error: Unmatched Parenthesis")
+                sys.exit(1)
+
+        # Checks that No invalid placed operators
+        if i == 0 and (content[i] ==  '*' or content[i] ==  '|' or content[i] ==  '+'):
+            print("Error: Regex Starts with invalid operater")
+            sys.exit(1)
+        if i == len(content) - 1 and content[i] == '|':
+            print("Error: Can't end with union operator")
+            sys.exit(1)
+
+        # Checking for doubles
+        if i + 1 < len(content):
+            if content[i] == '+' or content[i] == '*':
+                if content[i+1] == '+' or content[i+1] == '*':
+                    print("Error: Improper Ajacent operators")
+                    sys.exit(1)
+            if content[i] == '|':
+                if content[i+1] == '+' or content[i+1] == '*' or content[i+1] == '|':
+                    print("Error: Improper Ajacent operators")
+                    sys.exit(1)
+
+        # Checking that no wrong operators next to parenthesis
+        if i + 1 < len(content):
+            if content[i] == '(':
+                if content[i+1] == '+' or content[i+1] == '*' or content[i+1] == '|':
+                    print("Error: Improper Ajacent operators")
+                    sys.exit(1)
+            if content[i] == ')':
+                if content[i+1] == '+' or content[i+1] == '*':
+                    print("Error: Improper Ajacent operators")
+                    sys.exit(1)
+
+    if stack:
+            print("Error: Unmatched Parenthesis")
+            sys.exit(1)
+    # Finished Checks
+    print("No Erroneous regex elements")
+                
 
 def constructPieces():
 
     return 1
 
-def combineePieces():
+def combinePieces():
 
     return 1
 
@@ -51,6 +108,9 @@ if __name__ == "__main__":
             #print(f"File contents of '{filename}': \n")
             print(content)
             print("\n")
+
+            # Various Checks to make sure regex is valid
+            validRegex(content)
 
             result = parseRegex(content)
 
