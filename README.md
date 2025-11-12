@@ -26,3 +26,17 @@ parenthesis     if open left error, if open right note location of left move to 
 I just have to start implementing will be easier once I've started.
 
 just realized theres also empty string and set, U, and dot, ugh this'll be annoying, I'm sure theres a better way to parse the string I'm just not sure what
+
+
+Alphabet is constrained to a and b
+
+we will have special characters to represent certain symbols
+
+Sigma = Z
+Union = |
+Concat = .
+Star = *
+E = empty Set
+S = empty String
+Plus = +
+K power equals = number
