@@ -1,4 +1,5 @@
 import sys
+import sre_parse
 
 # ------- AST Node Classes ------
 class AstNode:
@@ -71,24 +72,25 @@ class NFA:
 def parseRegex(regex):
     print("We have entered parseRegex")
 
+    reggy = repr(regex)
+    parse = sre_parse.parse(reggy)
+    print(parse)
 
-    print("Adding concat symbols in prep for AST")
-    i = 0
-    while i < len(regex):
-        if regex[i] == 'a' or regex[i] == 'b' or regex[i] == 'Z' or regex[i] == '*' or regex[i] == '+' or regex[i] == ')':
-            if (i+1) < len(regex):
-                if regex[i+1] == 'a' or regex[i+1] == 'b' or regex[i+1] == '(' or regex[i+1] == 'Z':
-                    r1 = regex[:i+1] + '.'
-                    r2 = regex[i+1:]
-                    regex = r1 + r2
-        i += 1
+    #print("Adding concat symbols in prep for AST")
+    #i = 0
+    #while i < len(regex):
+    #    if regex[i] == 'a' or regex[i] == 'b' or regex[i] == 'Z' or regex[i] == '*' or regex[i] == '+' or regex[i] == ')':
+    #        if (i+1) < len(regex):
+    #            if regex[i+1] == 'a' or regex[i+1] == 'b' or regex[i+1] == '(' or regex[i+1] == 'Z':
+    #                r1 = regex[:i+1] + '.'
+    #                r2 = regex[i+1:]
+    #                regex = r1 + r2
+    #    i += 1
      
     print(regex)
     print("Finished Adding '.'\n")  
         
     # ------ AST CONSTRUCTION GOES HERE ------
-    print("Next step: Construct AST from regex")
-
 
     return 1
 
