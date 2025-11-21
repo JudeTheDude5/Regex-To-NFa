@@ -1,5 +1,6 @@
 import sys
 import sre_parse
+from typing import Set, Dict, Optional
 
 # ------- AST Node Classes ------
 class AstNode:
@@ -30,37 +31,20 @@ class PlusNode(AstNode):
         
         
 # ------ NFA Classes ------
+class State:
+    def __init__(self, is_accept=False):
+        self.is_accept = is_accept
+        self.transitions: Dict[Optional[str], Set['State']] = {}
+        self.state_id = id(self)
+
+    def add_transition(self, symbol: Optional[str], state: 'State'):
+        if symbol not in self.transtions:
+            self.transtions[symbol] = set()
+        self.transitions[symbol].add(state)
+
 class NFA:
-    def __init__(self, states, alphabet, transitions, start_state, accept_states):
-        """
-        Initializes an NFA.
-        
-        Args:
-            states (set): A set of states in the NFA.
-            alphabet (set): A set of input symbols. (hard coded)
-            transitions (dict): An 2D array representing state transitions.
-            start_state (str): The start state of the NFA.
-            accept_states (set): A set of accept states.
-        """
-        self.states = states
-        self.alphabet = {"a", "b", "Z"}
-        self.transitions = transitions
-        self.start_state = start_state
-        self.accept_states = accept_states
-        
-    def get_next_states(self, current_state, input_symbol):
-        """
-        Returns the set of next states for a given current state and input symbol.
-        
-        Args:
-            current_state (str): The current state.
-            input_symbol (str): The input symbol.
-            
-        """
-        return self.transitions.get((current_state, input_symbol), set())
-        
-    def __str__(self):
-        return f"NFA(states={self.states}, alphabet={self.alphabet}, transitions={self.transitions}, start_state={self.start_state}, accept_states={self.accept_states})"
+    start: State
+    accept: State
     
 
         
@@ -89,6 +73,7 @@ def parseRegex(regex):
      
     print(regex)
     print("Finished Adding '.'\n")  
+    return parse
         
     # ------ AST CONSTRUCTION GOES HERE ------
 
@@ -151,9 +136,108 @@ def validRegex(content):
     print("No Erroneous regex elements")
                 
 
-def constructPieces():
+def constructPieces(pRegex):
+    nfa = None
 
-    return 1
+    for op, av in pRegex:
+        current_nfa = None
+        if op == sre_parse.LITERAL:
+            start = State()
+            accept = State(is_accept=True)
+            start.add_transition(chr(av), accept)
+            current_nfa = NFA(start, accept)
+
+        elif op == sre_parse.SUBPATTERN:
+            subby = av[-1]
+            current_nfa = constructPieces(subby)
+
+        elif op == sre_parse.BRANCH:
+            alternatives = av[1]
+
+            if not alternatives:
+                continue
+
+            alt_nfas = [constructPieces(alt) for alt in alternatives]
+
+            new_start = State()
+            new_accept = State(is_accept=True)
+
+            for alt_nfa in alt_nfas:
+                new_start.add_transition(None, alt_nfa.start)
+                alt_nfa.accept.is_accept = False
+                alt_nfa.accept.add_transition(None, new_accept)
+
+            current_nfa = NFA(new_start, new_accept)
+
+        elif op == sre_parse.MAX_REPEAT or op == sre_parse.MIN_REPEAT:
+            min_repeat, max_repeat, sub_pattern = av
+
+            sub_nfa = constructPieces(sub_pattern)
+
+            if min_repeat == 0 and max_repeat == 1:
+                # ?
+                new_start = State()
+                new_accept = State(is_accept=True)
+
+                new_start.add_transition(None, sub_nfa.start)
+                new_start.add_transition(None, new_accept)
+
+                sub_nfa.accept.is_accept = False
+                sub_nfa.accept.add_transition(None, new_accept)
+
+                current_nfa = NFA(new_start, new_accept)
+
+            elif min_repeat == 0 and max_repeat == sre_parse.MAXREPEAT:
+                # *
+                new_start = State()
+                new_accept = State(is_accept=True)
+
+                new_start.add_transition(None, sub_nfa.start)
+                new_start.add_transition(None, new_accept)
+
+                sub_nfa.accept.is_accept = False
+                sub_nfa.accept.add_transition(None, sub_nfa.start)
+                sub_nfa.accept.add_transition(None, new_accept)
+
+                current_nfa = NFA(new_start, new_accept)
+
+            elif min_repeat == 1 and max_repeat == sre_parse.MAXREPEAT:
+                # +
+                new_start = State()
+                new_accept = State(is_accept=True)
+
+                new_start.add_transition(None, sub_nfa.start)
+
+                sub_nfa.accept.is_accept = False
+                sub_nfa.accept.add_transition(None, sub_nfa.start)
+                sub_nfa.accept.add_transition(None, new_accept)
+
+                current_nfa = NFA(new_start, new_accept)
+            else:
+                current_nfa = sub_nfa
+
+        elif op == sre_parse.ANY:
+            start = State()
+            accept = State(is_accept=True)
+
+            for c in range(32, 127):
+                if chr(c) != '\n':
+                    start.add_transtition(chr(c), accept)
+
+            current_nfa = NFA(start, accept)
+
+        else:
+            raise ValueError(f"Unsupported regex operation: {op}")
+        
+        if current_nfa:
+            if nfa is None:
+                nfa = current_nfa
+            else:
+                nfa.accept.is_accept = False
+                nfa.accept.add_transition(None, current_nfa.start)
+                nfa = NFA(nfa.start, current_nfa.accept)
+
+    return nfa if nfa else NFA(State(), State(is_accept=True))
 
 def combinePieces():
 
@@ -184,6 +268,7 @@ if __name__ == "__main__":
             validRegex(content)
 
             result = parseRegex(content)
+            nfa = constructPieces(result)
 
     except FileNotFoundError:
         print(f"Error: The file '{filename}' was not found.")
