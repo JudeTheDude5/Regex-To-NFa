@@ -146,8 +146,8 @@ def parseRegex(regex):
     """Parses the regex string into an AST using sre_parse."""
     #print("We have entered parseRegex")
 
-    reggy = repr(regex)
-    parse = sre_parse.parse(reggy)
+    #reggy = repr(regex)
+    parse = sre_parse.parse(regex)
     #print(parse)
      
     #print(regex)
@@ -249,6 +249,19 @@ def constructPieces(pRegex):
                 alt_nfa.accept.add_transition(None, new_accept)
 
             current_nfa = NFA(new_start, new_accept)
+            
+        elif op == sre_parse.IN:
+            start = State()
+            accept = State(is_accept=True)
+
+            for itemOp, itemAv in av:
+                if itemOp == sre_parse.LITERAL:
+                    start.add_transition(chr(itemAv), accept)
+                elif itemOp == sre_parse.RANGE:
+                    for c in range(itemAv[0], itemAv[1] + 1):
+                        start.add_transition(chr(c), accept)
+                        
+            current_nfa = NFA(start, accept)
 
         elif op == sre_parse.MAX_REPEAT or op == sre_parse.MIN_REPEAT:
             min_repeat, max_repeat, sub_pattern = av
