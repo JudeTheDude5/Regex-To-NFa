@@ -36,15 +36,27 @@ class State:
         self.is_accept = is_accept
         self.transitions: Dict[Optional[str], Set['State']] = {}
         self.state_id = id(self)
+        self.visited = False
 
     def add_transition(self, symbol: Optional[str], state: 'State'):
-        if symbol not in self.transtions:
-            self.transtions[symbol] = set()
+        if symbol not in self.transitions:
+            self.transitions[symbol] = set()
         self.transitions[symbol].add(state)
 
 class NFA:
-    start: State
-    accept: State
+    def __init__(self, start, accept):
+        self.start: State = start
+        self.accept: State = accept
+
+class formalDescription:
+    def __init__(self, Q, Q0, Delta, F, state_mapping):
+        Q: Set[str] = Q
+        Sigma = {'a', 'b'}
+        Q0: str = Q0
+        Delta: Dict[tuple[str, Optional[str]], Set[str]] = Delta
+        F: Set[str] = F
+        state_mapping: Dict[State, str] = state_mapping
+
     
 
         
@@ -141,6 +153,9 @@ def constructPieces(pRegex):
 
     for op, av in pRegex:
         current_nfa = None
+        if op == sre_parse.LITERAL:
+            if chr(av) == "'":
+                continue
         if op == sre_parse.LITERAL:
             start = State()
             accept = State(is_accept=True)
@@ -239,13 +254,54 @@ def constructPieces(pRegex):
 
     return nfa if nfa else NFA(State(), State(is_accept=True))
 
-def combinePieces():
+def combinePieces(nfa):
+    print("entered combinje pieces")
 
-    return 1
+    all_states = getStates(nfa)
 
-def textFormatting():
+    state_mapping = {}
+    for i, state in enumerate(sorted(all_states, key=lambda s: s.state_id)):
+        state_mapping[state] = f"q{i}"
 
-    return 1
+    Q = set(state_mapping.values())
+
+    print(Q)
+
+    delta = {}
+    for state in all_states:
+        state_name = state_mapping[state]
+        for symbol, dest_states in state.transitions.items():
+            dest_names = {state_mapping[s] for s in dest_states}
+            delta[(state_name, symbol)] = dest_names
+
+    Q0 = state_mapping[nfa.start]
+
+    print(Q0)
+
+    F = {state_mapping[s] for s in all_states if s.is_accept}
+
+    print(F)
+
+    return formalDescription(Q, Q0, delta, F, state_mapping)
+
+def getStates(nfa: NFA):
+
+    print("Entered getStates")
+    visited = set()
+    stack = [nfa.start]
+
+    while stack:
+        state = stack.pop()
+        if state in visited:
+            continue
+        visited.add(state)
+
+        for symbol, next_states in state.transitions.items():
+            for next_state in next_states:
+                if next_state not in visited:
+                    stack.append(next_state)
+
+    return visited
 
 if __name__ == "__main__":
     # Checks that has more then just script, if not tells you to add then fails
@@ -269,6 +325,8 @@ if __name__ == "__main__":
 
             result = parseRegex(content)
             nfa = constructPieces(result)
+            tx = combinePieces(nfa)
+
 
     except FileNotFoundError:
         print(f"Error: The file '{filename}' was not found.")
