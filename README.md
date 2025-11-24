@@ -1,42 +1,62 @@
-# Regex-To-NFa
-Ok so I have an idea on how to do this pipeline
+Regex to NFA Converter
 
-we'll have functions 
+A Python implementation of Thompson's Construction algorithm that converts regular expressions into Non-deterministic Finite Automata (NFAs) with formal descriptions.
 
-parseRegex: Check for all expressions, put into expanding list then we can look through and add them to next function
+INPUT:
+Takes a single .txt file that contains a properly formatted regex.
 
-constructPieces: build list full of DFA datastrucures for indivudal constructions, for all of this Im thinking recursive for parentehesis? to insure proper order and since we don't know how far into it it goes
+What is the proper format?
+- only using a's or b's
+- using | for union
+- using Z for sigma
+- *, +, and () work as usual
 
-combinePieces: go through each piece and add it to the next, list should just be in order
+Step 1: Read file
+- checks that file is inputted
+- opens file and passes content to validRegex()
 
-textFormatting: Format it into text and return
+Step 2: Validate regex is in proper form
+- checks proper symbol use
+- checks proper parenthesis 
+- checks for no invalidly placed operators
+- checks for double operators
+- checks for proper operator parenthesis order
+- then main moves to parseRegex()
 
-then text should be output.
+Step 3: Parse regex into Abstract Syntax Tree (AST)
+- called pythons built in library
+* library will be removed eventually so depreciation warning ignored * 
+- then main moves to constructPieces()
 
-nned to look through the book to review
+Step 4: Constructing NFA from the AST
+- checks for certain parse operand and adds correct part into NFA class
+- returns NFA which has start and accept states that are of state type and have the attributes: is_accept, transitions, state_id, visited
+- then main moves to combinePieces()
+
+Step 5: Combine the NFA pieces into a formal description
+- get all the states in the NFA 
+- rename states to "prettier" names
+- create a set of all the states
+- create delta using dict
+- find start state
+- find all accept states (most likely only one due to Thompson's   Construction)
+- return formal description
+- then main moves to __str__() in the formalDescription class
+
+Step 6: Turn formal description into string
+- create a lines var
+- organize formal description into separate parts 
+- call method that organizes delta table
+- add parts to lines as they are made
+- return lines
+
+Step 7: Write to file
+- take passed in string and write to file "NFA_formal_description.txt"
+
+OUTPUT:
+Writes the formal description for the NFA to a file titled "NFA_formal_description.txt"
 
 
-parsing ideas:
+Example command line entry:
 
-cases:
-a     just a letter we'll check to it's right for * and + and ^(then to the right to see a number)
-sigma    check for stuff to the right
-parenthesis     if open left error, if open right note location of left move to right until we find right take note of location then we can take everything from the middle plus look to right, perhaps have *,+,^ be toggles within the data? like a struct that include a string and a character, each of those has own character that will be read for structure, plus parenthesis since we have to look inside those recursively for more stuff.
-
-I just have to start implementing will be easier once I've started.
-
-just realized theres also empty string and set, U, and dot, ugh this'll be annoying, I'm sure theres a better way to parse the string I'm just not sure what
-
-
-Alphabet is constrained to a and b
-
-we will have special characters to represent certain symbols
-
-Sigma = Z
-Union = |
-Concat = .
-Star = *
-E = empty Set
-S = empty String
-Plus = +
-K power equals = number
+python3 ./regexToNFA.py regexFile.txt
