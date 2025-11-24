@@ -102,7 +102,7 @@ def validRegex(content):
     for i in range(len(content)):
         #Checks Proper Symbol use
         if content[i] != 'Z' and content[i] != 'a' and content[i] != 'b' and content[i] != '+' and content[i] != '*' and content[i] != '|' and content[i] != '(' and content[i] != ')':
-            print("Error: Erroneous Characters used, only valids are a,b,Z,+,*,|,(,)")
+            print("Error: Erroneous Characters used, only valid ones are a,b,Z,+,*,|,(,)")
             sys.exit(1)
 
         # Checks that parenthesis are correct
@@ -117,7 +117,7 @@ def validRegex(content):
 
         # Checks that No invalid placed operators
         if i == 0 and (content[i] ==  '*' or content[i] ==  '|' or content[i] ==  '+'):
-            print("Error: Regex Starts with invalid operater")
+            print("Error: Regex Starts with invalid operator")
             sys.exit(1)
         if i == len(content) - 1 and content[i] == '|':
             print("Error: Can't end with union operator")
@@ -127,18 +127,18 @@ def validRegex(content):
         if i + 1 < len(content):
             if content[i] == '+' or content[i] == '*':
                 if content[i+1] == '+' or content[i+1] == '*':
-                    print("Error: Improper Ajacent operators")
+                    print("Error: Improper Adjacent operators")
                     sys.exit(1)
             if content[i] == '|':
                 if content[i+1] == '+' or content[i+1] == '*' or content[i+1] == '|':
-                    print("Error: Improper Ajacent operators")
+                    print("Error: Improper Adjacent operators")
                     sys.exit(1)
 
         # Checking that no wrong operators next to parenthesis
         if i + 1 < len(content):
             if content[i] == '(':
                 if content[i+1] == '+' or content[i+1] == '*' or content[i+1] == '|':
-                    print("Error: Improper Ajacent operators")
+                    print("Error: Improper Adjacent operators")
                     sys.exit(1)
 
     if stack:
@@ -237,7 +237,7 @@ def constructPieces(pRegex):
 
             for c in range(32, 127):
                 if chr(c) != '\n':
-                    start.add_transtition(chr(c), accept)
+                    start.add_transition(chr(c), accept)
 
             current_nfa = NFA(start, accept)
 
@@ -331,7 +331,7 @@ if __name__ == "__main__":
     except FileNotFoundError:
         print(f"Error: The file '{filename}' was not found.")
     except Exception as e:
-        print(f"An error occured: {e}")
+        print(f"An error occurred: {e}")
 
 
 
