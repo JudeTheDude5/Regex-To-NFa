@@ -281,7 +281,7 @@ def constructPieces(pRegex):
 
                 current_nfa = NFA(new_start, new_accept)
 
-            elif min_repeat == 0 and max_repeat == sre_parse.MAX_REPEAT:
+            elif min_repeat == 0 and max_repeat == sre_parse.MAXREPEAT:
                 # *
                 new_start = State()
                 new_accept = State(is_accept=True)
@@ -295,7 +295,7 @@ def constructPieces(pRegex):
 
                 current_nfa = NFA(new_start, new_accept)
 
-            elif min_repeat == 1 and max_repeat == sre_parse.MAX_REPEAT:
+            elif min_repeat == 1 and max_repeat == sre_parse.MAXREPEAT:
                 # +
                 new_start = State()
                 new_accept = State(is_accept=True)
