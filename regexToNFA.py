@@ -1,37 +1,15 @@
 import sys
+import warnings
+warnings.filterwarnings("ignore", category=DeprecationWarning)
 import sre_parse
+# ^ Used for regex parsing will eventually be removed from python hence the warning ignore
+from dataclasses import dataclass
 from typing import Set, Dict, Optional
-
-# ------- AST Node Classes ------
-class AstNode:
-    pass
-
-class LiteralNode(AstNode):
-    def __init__(self, char):
-        self.char = char
-        
-class ConcatNode(AstNode):
-    def __init__(self, left, right):
-        self.left = left
-        self.right = right
-        
-class UnionNode(AstNode):
-    def __init__(self, left, right):
-        self.left = left
-        self.right = right
-        
-class StarNode(AstNode):
-    def __init__(self, child):
-        self.child = child
-        
-class PlusNode(AstNode):
-    def __init__(self, child):
-        self.child = child
-        
         
         
 # ------ NFA Classes ------
 class State:
+    """Represents a state in the NFA."""
     def __init__(self, is_accept=False):
         self.is_accept = is_accept
         self.transitions: Dict[Optional[str], Set['State']] = {}
@@ -44,55 +22,142 @@ class State:
         self.transitions[symbol].add(state)
 
 class NFA:
+    """Represents a Non-deterministic Finite Automaton (NFA)."""
     def __init__(self, start, accept):
         self.start: State = start
         self.accept: State = accept
-
+        
+# ------- Formal Description Class -------
+@dataclass
 class formalDescription:
-    def __init__(self, Q, Q0, Delta, F, state_mapping):
-        Q: Set[str] = Q
-        Sigma = {'a', 'b'}
-        Q0: str = Q0
-        Delta: Dict[tuple[str, Optional[str]], Set[str]] = Delta
-        F: Set[str] = F
-        state_mapping: Dict[State, str] = state_mapping
-
+    """Dataclass to hold the formal description of an NFA."""
     
+    Q: Set[str]
+    Sigma: Set[str]
+    Q0: str
+    Delta: Dict[tuple[str, Optional[str]], Set[str]] 
+    F: Set[str]
+    state_mapping: Dict[State, str] 
+    
+    def __str__(self, regex) -> str:
+        """Returns the formal string description of the NFA."""
+        #print("Entered __str__")
+        return self.toString(regex)
+    
+    def toString(self, regex) -> str:
+        """Generates a formal string description of the NFA."""
+        #print("Entered createStringDescription")
+        
+        lines = []  
+        
+        lines.append("=" * 70)
+        lines.append("Formal Description of NFA for regex: " + regex)
+        lines.append("=" * 70)
+        
+        lines.append("\n1.  States (Q):")
+        lines.append("\n    Q = {" + ", ".join(sorted(self.Q)) + "}")
+        lines.append("    |Q| = " + str(len(self.Q)))
+        
+        lines.append("\n2.  Alphabet (Σ):")
+        lines.append("\n    Σ = {" + ", ".join(sorted(self.Sigma)) + "}")
+        
+        lines.append("\n3.  Transition Table (Δ):")
+        lines.append("\n" + self.formatDelta())
+        
+        lines.append("\n4.  Start State (Q0):")
+        lines.append("\n    q₀ = " + "".join(self.Q0))
+        
+        lines.append("\n5.  Accept States (F):")
+        lines.append("\n    F = {" + ", ".join(sorted(self.F)) + "}\n")
+        
+        lines.append("=" * 70)
+        
+        formalDescriptionStr = "\n".join(lines)
+        
+        writeToFile(formalDescriptionStr)
+        
+        return formalDescriptionStr
+    
+    def formatDelta(self):
+        """Formats the transition function Δ into a readable table."""
+        
+        lines = []
+        allSymb = sorted(self.Sigma)
+        has_epsilon = any(symbol is None for (_, symbol) in self.Delta.keys())
+        
+        # Create header
+        header  = ["State"] + [repr(s) for s in allSymb]
+        if has_epsilon:
+            header.append("ε")
+        
+        # Determine column widths
+        colWidths = [max(len(h), 8) for h in header]
+        for state in sorted(self.Q):
+            
+            colWidths[0] = max(colWidths[0], len(state) + 1)
+            
+            for i, symbol in enumerate(allSymb):
+                key = (state, symbol)
+                if key in self.Delta:
+                    dest_states = "{" + ",".join(sorted(self.Delta[key])) + "}"
+                    colWidths[i + 1] = max(colWidths[i + 1], len(dest_states))
+            
+            if has_epsilon:    
+                key = (state, None)
+                if key in self.Delta:
+                    dest_states = "{" + ",".join(sorted(self.Delta[key])) + "}"
+                    colWidths[-1] = max(colWidths[-1], len(dest_states))
+                    
+        lines.append("  " + " | ".join(h.ljust(w) for h, w in zip(header, colWidths)))
+        lines.append("  " + "-+-".join('-' * w for w in colWidths))
+        
+        for state in sorted(self.Q):
+            row = []
+            
+            row.append(state.ljust(colWidths[0]))
+            
+            for i, symbol in enumerate(allSymb):
+                key = (state, symbol)
+                if key in self.Delta:
+                    dest_states = sorted(self.Delta[key])
+                    cell = "{" + ", ".join(dest_states) + "}"
+                else:
+                    cell = "∅"
+                row.append(cell.ljust(colWidths[i + 1]))
+                
+            if has_epsilon:
+                key = (state, None)
+                if key in self.Delta:
+                    dest_states = sorted(self.Delta[key])
+                    cell = "{" + ", ".join(dest_states) + "}"
+                else:
+                    cell = "∅"
+                row.append(cell.ljust(colWidths[-1]))
+            
+            lines.append("  " + " | ".join(row))
+            
 
-        
-        
-        
+        return "\n".join(lines)
+
 
 # ------- Regex Validation and Parsing ---------
 
 def parseRegex(regex):
-    print("We have entered parseRegex")
+    """Parses the regex string into an AST using sre_parse."""
+    #print("We have entered parseRegex")
 
     reggy = repr(regex)
     parse = sre_parse.parse(reggy)
-    print(parse)
-
-    #print("Adding concat symbols in prep for AST")
-    #i = 0
-    #while i < len(regex):
-    #    if regex[i] == 'a' or regex[i] == 'b' or regex[i] == 'Z' or regex[i] == '*' or regex[i] == '+' or regex[i] == ')':
-    #        if (i+1) < len(regex):
-    #            if regex[i+1] == 'a' or regex[i+1] == 'b' or regex[i+1] == '(' or regex[i+1] == 'Z':
-    #                r1 = regex[:i+1] + '.'
-    #                r2 = regex[i+1:]
-    #                regex = r1 + r2
-    #    i += 1
+    #print(parse)
      
-    print(regex)
-    print("Finished Adding '.'\n")  
+    #print(regex)
+    #print("Finished Adding '.'\n")  
     return parse
-        
-    # ------ AST CONSTRUCTION GOES HERE ------
 
-    return 1
 
 def validRegex(content):
-    print("We have entered validity checker")
+    """Validates the regex string for correctness."""
+    #print("We have entered validity checker")
     
     # Valid Regex Check
     if len(content) == 0:
@@ -145,10 +210,11 @@ def validRegex(content):
             print("Error: Unmatched Parenthesis")
             sys.exit(1)
     # Finished Checks
-    print("No Erroneous regex elements")
+    #print("No Erroneous regex elements")
                 
 
 def constructPieces(pRegex):
+    """Constructs NFA pieces from the parsed regex AST."""
     nfa = None
 
     for op, av in pRegex:
@@ -202,7 +268,7 @@ def constructPieces(pRegex):
 
                 current_nfa = NFA(new_start, new_accept)
 
-            elif min_repeat == 0 and max_repeat == sre_parse.MAXREPEAT:
+            elif min_repeat == 0 and max_repeat == sre_parse.MAX_REPEAT:
                 # *
                 new_start = State()
                 new_accept = State(is_accept=True)
@@ -216,7 +282,7 @@ def constructPieces(pRegex):
 
                 current_nfa = NFA(new_start, new_accept)
 
-            elif min_repeat == 1 and max_repeat == sre_parse.MAXREPEAT:
+            elif min_repeat == 1 and max_repeat == sre_parse.MAX_REPEAT:
                 # +
                 new_start = State()
                 new_accept = State(is_accept=True)
@@ -255,7 +321,8 @@ def constructPieces(pRegex):
     return nfa if nfa else NFA(State(), State(is_accept=True))
 
 def combinePieces(nfa):
-    print("entered combinje pieces")
+    """Combines NFA pieces into a formal description."""
+    #print("entered combine pieces")
 
     all_states = getStates(nfa)
 
@@ -265,7 +332,7 @@ def combinePieces(nfa):
 
     Q = set(state_mapping.values())
 
-    print(Q)
+    #print(Q)
 
     delta = {}
     for state in all_states:
@@ -276,17 +343,17 @@ def combinePieces(nfa):
 
     Q0 = state_mapping[nfa.start]
 
-    print(Q0)
+    #print(Q0)
 
     F = {state_mapping[s] for s in all_states if s.is_accept}
 
-    print(F)
+    #print(F)
 
-    return formalDescription(Q, Q0, delta, F, state_mapping)
+    return formalDescription(Q, {"a", "b"}, Q0, delta, F, state_mapping)
 
 def getStates(nfa: NFA):
-
-    print("Entered getStates")
+    """Retrieves all states in the NFA using DFS."""
+    #print("Entered getStates")
     visited = set()
     stack = [nfa.start]
 
@@ -303,6 +370,22 @@ def getStates(nfa: NFA):
 
     return visited
 
+
+def writeToFile(strDesc):
+    """Writes the formal description string to a file."""
+    
+    #print("Entered writeToFile")
+    
+    print("Writing Formal Description to 'NFA_formal_description.txt'")
+    
+    try:
+        with open("NFA_formal_description.txt", "w") as f:
+            f.write(strDesc)
+        print("Successfully wrote to 'NFA_formal_description.txt'")
+    except Exception as e:
+        print(f"An error occurred while writing to file: {e}")
+    
+
 if __name__ == "__main__":
     # Checks that has more then just script, if not tells you to add then fails
     if len(sys.argv) < 2:
@@ -317,15 +400,26 @@ if __name__ == "__main__":
         with open(filename, 'r') as file:
             content = file.read()
             #print(f"File contents of '{filename}': \n")
-            print(content)
-            print("\n")
+            #print(content)
+            #print("\n")
 
             # Various Checks to make sure regex is valid
             validRegex(content)
 
+            # Parsing Regex into AST
             result = parseRegex(content)
+            
+            # Construct NFA from AST
             nfa = constructPieces(result)
+            
+            # Combine NFA pieces into formal description
             tx = combinePieces(nfa)
+            
+            tx.__str__(content)
+            
+            # Print Formal Description to console
+            #print("\n")
+            #print(tx)
 
 
     except FileNotFoundError:
