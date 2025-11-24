@@ -58,14 +58,14 @@ class formalDescription:
         lines.append("\n    Q = {" + ", ".join(sorted(self.Q)) + "}")
         lines.append("    |Q| = " + str(len(self.Q)))
         
-        lines.append("\n2.  Alphabet (Σ):")
-        lines.append("\n    Σ = {" + ", ".join(sorted(self.Sigma)) + "}")
+        lines.append("\n2.  Alphabet (Sigma):")
+        lines.append("\n    Sigma = {" + ", ".join(sorted(self.Sigma)) + "}")
         
-        lines.append("\n3.  Transition Table (Δ):")
+        lines.append("\n3.  Transition Table (Delta):")
         lines.append("\n" + self.formatDelta())
         
         lines.append("\n4.  Start State (Q0):")
-        lines.append("\n    q₀ = " + "".join(self.Q0))
+        lines.append("\n    Q0 = " + "".join(self.Q0))
         
         lines.append("\n5.  Accept States (F):")
         lines.append("\n    F = {" + ", ".join(sorted(self.F)) + "}\n")
@@ -79,7 +79,7 @@ class formalDescription:
         return formalDescriptionStr
     
     def formatDelta(self):
-        """Formats the transition function Δ into a readable table."""
+        """Formats the transition function Delta into a readable table."""
         
         lines = []
         allSymb = sorted(self.Sigma)
@@ -88,7 +88,7 @@ class formalDescription:
         # Create header
         header  = ["State"] + [repr(s) for s in allSymb]
         if has_epsilon:
-            header.append("ε")
+            header.append("None")
         
         # Determine column widths
         colWidths = [max(len(h), 8) for h in header]
@@ -122,7 +122,7 @@ class formalDescription:
                     dest_states = sorted(self.Delta[key])
                     cell = "{" + ", ".join(dest_states) + "}"
                 else:
-                    cell = "∅"
+                    cell = "No"
                 row.append(cell.ljust(colWidths[i + 1]))
                 
             if has_epsilon:
@@ -131,7 +131,7 @@ class formalDescription:
                     dest_states = sorted(self.Delta[key])
                     cell = "{" + ", ".join(dest_states) + "}"
                 else:
-                    cell = "∅"
+                    cell = "No"
                 row.append(cell.ljust(colWidths[-1]))
             
             lines.append("  " + " | ".join(row))

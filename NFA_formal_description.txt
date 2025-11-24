@@ -4,30 +4,32 @@ Formal Description of NFA for regex: (a|b)*ab
 
 1.  States (Q):
 
-    Q = {q0, q1, q2, q3, q4, q5}
-    |Q| = 6
+    Q = {q0, q1, q2, q3, q4, q5, q6, q7}
+    |Q| = 8
 
-2.  Alphabet (Σ):
+2.  Alphabet (Sigma):
 
-    Σ = {a, b}
+    Sigma = {a, b}
 
-3.  Transition Table (Δ):
+3.  Transition Table (Delta):
 
-  State    | 'a'      | 'b'      | ε       
+  State    | 'a'      | 'b'      | None    
   ---------+----------+----------+---------
-  q0       | ∅        | ∅        | {q4}    
-  q1       | ∅        | ∅        | {q2}    
-  q2       | {q0}     | ∅        | ∅       
-  q3       | {q1}     | {q1}     | ∅       
-  q4       | ∅        | {q5}     | ∅       
-  q5       | ∅        | ∅        | ∅       
+  q0       | No       | No       | {q3}    
+  q1       | No       | No       | No      
+  q2       | No       | {q1}     | No      
+  q3       | {q6}     | No       | No      
+  q4       | No       | No       | {q0, q7}
+  q5       | No       | No       | {q0, q7}
+  q6       | No       | No       | {q2}    
+  q7       | {q4}     | {q4}     | No      
 
 4.  Start State (Q0):
 
-    q₀ = q3
+    Q0 = q5
 
 5.  Accept States (F):
 
-    F = {q5}
+    F = {q1}
 
 ======================================================================
