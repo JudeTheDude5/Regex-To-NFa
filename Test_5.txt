@@ -1,1 +1,1 @@
-a|a
+abb*(abb*|b*a*)

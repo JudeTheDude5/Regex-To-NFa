@@ -1,1 +1,1 @@
-aba|abaabab(a*b|Z)*
+b+|(aba)*
